@@ -1,0 +1,54 @@
+id: "AGI"
+host: 0.0.0.0
+port: 8888
+log: /app/llamazoo.log
+deadline: 300
+sessions:
+debug: cuda
+
+pods:
+
+  -
+    threads: 1
+    gpus: [ 100 ]
+    model: default
+    batchsize: 512
+
+models:
+
+  -
+    id: default
+    name: Yet Another Model
+    path: /app/model.gguf
+    locale: en_US
+    
+#    preamble: "# Today ${DATE}. You are the smart AI assistant. Please read the task and answer the question."
+#    prefix: "\n\nUSER:\n"
+#    suffix: "\n\nASSISTANT:"
+
+    preamble: "Today ${DATE}. You are the smart AI assistant. Please read the dialog and answer the user's question. Be short and precise!"
+    prefix: "\nUSER: "
+    suffix: "\nASSISTANT:"
+
+#    preamble: ""
+#    prefix: ""
+#    suffix: ""
+    
+    contextsize: 4096
+    predict: 512
+    
+    janus: 1
+    depth: 200
+    scale: 0.97
+    hi: 0.99
+    lo: 0.97
+    
+    temp: 0.8
+    topk: 8
+    topp: 0.9
+    typicalp: 1.0
+    penaltyrepeat: 1.1
+    penaltylastn: 200
+    mirostat: 0
+    mirostatent: 3.0
+    mirostatlr: 0.1

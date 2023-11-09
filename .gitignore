@@ -1,0 +1,4 @@
+.env
+llamazoo.log
+team_code/__pycache__/
+team_code/ckpts/projection_LLaMa-7b-EN-Linear-ImageBind
