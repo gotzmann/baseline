@@ -25,6 +25,9 @@ from .utils import get_query_from_input, get_text_emb
 
 # -- PandaGPT
 
+# Custom dependencies
+sys.path.append('/home/git/baseline/team_code/model/') 
+
 ### from transformers import AutoModel, AutoTokenizer
 ### from copy import deepcopy
 ### import os
