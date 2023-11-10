@@ -11,8 +11,33 @@ from imagebind.models.imagebind_model import ModalityType
 
 from .utils import get_query_from_input, get_text_emb
 
-DEVICE = torch.device("cuda:0")
+# from llava.model.builder import load_pretrained_model
+# from llava.mm_utils import get_model_name_from_path
+# from llava.eval.run_llava import eval_model
 
+# model_path = "liuhaotian/llava-v1.5-7b"
+
+# tokenizer, model, image_processor, context_len = load_pretrained_model(
+#     model_path=model_path,
+#     model_base=None,
+#     model_name=get_model_name_from_path(model_path)
+# )
+
+# -- PandaGPT
+
+from transformers import AutoModel, AutoTokenizer
+from copy import deepcopy
+import os
+import ipdb
+import gradio as gr
+import mdtex2html
+from model.openllama import OpenLLAMAPEFTModel
+import torch
+import json
+
+# -- Baseline
+
+DEVICE = torch.device("cuda:0")
 DIALOGUE_DICT = {}
 
 # bad_words_ids = tokenizer(["\nUser: ", "\n Bot:",], add_special_tokens=False).input_ids
@@ -70,8 +95,34 @@ def imagebind_huge(pretrained=False):
 
 # Function that returns model and tokenizer that will be used during the generation
 def setup_model_and_tokenizer():
+
+    # -- init the model
+    # https://huggingface.co/openllmplayground/pandagpt_13b_max_len_400
+    # https://huggingface.co/openllmplayground/pandagpt_13b_max_len_400/resolve/main/pytorch_model.pt
+
+    panda_args = {
+        'model':               'openllama_peft',
+        'imagebind_path': '/app/.checkpoints', # /imagebind_huge.pth # '../pretrained_ckpt/imagebind_ckpt',
+        'vicuna_path':    '/app/vicuna-13b-v1.3', # '../pretrained_ckpt/vicuna_ckpt/13b_v0',
+        'delta_path':     '/app/panda/pytorch_model.pt', # '../pretrained_ckpt/pandagpt_ckpt/13b/pytorch_model.pt',
+        'stage': 2,
+        'max_tgt_len': 128,
+        'lora_r': 32,
+        'lora_alpha': 32,
+        'lora_dropout': 0.1,
+    }
+
+    panda_model = OpenLLAMAPEFTModel()
+    delta_ckpt = torch.load(panda_args['delta_path'], map_location=torch.device('cpu'))
+    panda_model.load_state_dict(delta_ckpt, strict=False)
+    panda_model = panda_model.eval().half().cuda()
+    print("Init the Panda 13B model...")
+
+
     tokenizer = AutoTokenizer.from_pretrained("/app/Llama-2-7B-fp16", padding_side="left", use_fast=False)
+    # tokenizer = AutoTokenizer.from_pretrained("/app/llava-v1.5-13b", padding_side="left", use_fast=False)
     model = AutoModelForCausalLM.from_pretrained("/app/Llama-2-7B-fp16", torch_dtype=torch.float16).eval().to(device=DEVICE)
+    # model = AutoModelForCausalLM.from_pretrained("/app/llava-v1.5-13b", torch_dtype=torch.float16).eval().to(device=DEVICE)
 
     # Instantiate model for image and audio embeddings
     model_imagebind = imagebind_huge(pretrained=True).eval().to(device=DEVICE)
@@ -103,11 +154,43 @@ def setup_model_and_tokenizer():
         img_tokens_emb,
         audio_tokens_emb,
         projection,
+        panda_model
     ], tokenizer
 
 
 # Function that generates the responses for dialodues queries w.r.t. history.
 def generate_text(model, tokenizer, cur_query_list, history_tensor=None):
+
+    panda_model = model[5]
+
+    prompt = cur_query_list[0]["content"]
+    image_path = ""
+    audio_path = ""
+    video_path = ""
+    thermal_path = ""
+    top_p = 0.96
+    temperature = 1.0
+    max_length = 400 # 256
+    modality_cache = None
+
+    response = panda_model.generate({
+        'prompt': prompt,
+        'image_paths': [image_path] if image_path else [],
+        'audio_paths': [audio_path] if audio_path else [],
+        'video_paths': [video_path] if video_path else [],
+        'thermal_paths': [thermal_path] if thermal_path else [],
+        'top_p': top_p,
+        'temperature': temperature,
+        'max_tgt_len': max_length,
+        'modality_embeds': modality_cache
+    })
+
+    return ([], response)
+
+    # -- baseline
+
+
+
     if history_tensor is not None:
         history_tensor = torch.concat(
             [history_tensor[0], get_text_emb(model[0], tokenizer, history_tensor[1])],

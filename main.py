@@ -15,13 +15,19 @@ dialog = [
     ],
     [
         [
-            { "type": "image", "content": "00001.png" }, 
-            { "type": "text", "content": "How many pears and apples are there in the picture?" }
+            { "type": "image", "content": "00001.png" },
+            { "type": "text", "content": "How many pears are there on the picture?" }
+        ],
+        [
+            { "type": "text", "content": "How many apples are there on the picture shown before?" }
         ]
     ],
     [
         [
-            { "type": "text", "content": "What animal made that sound??" }, 
+            { "type": "text", "content": "Do you know how kittens meow?" }, 
+        ],
+        [
+            { "type": "text", "content": "What animal made that sound?" }, 
             { "type": "audio", "content": "00000.wav" }
         ]
     ],
@@ -32,15 +38,25 @@ dialog = [
         [
             { "type": "text", "content": "Is it the oldest of all existing oceans?" }
         ]
+    ],
+    [
+        [
+            { "type": "text", "content": "What common between those picture and sounds?" }, 
+            { "type": "image", "content": "00001.png" },
+            { "type": "audio", "content": "00000.wav" }
+        ]   
     ]
 ]
 
 answers = [
     "The Pacific Ocean is the largest and deepest of the world ocean basins.",
-    "There are three pears and one red apple on the picture.",
+    "There are three pears on the picture.",
+    "There is one red apple on the picture.",
+    "Yes, I know how kittens meow.",
     "That is the dog barking.",
     "Pacific Ocean border four continents in total.",
-    "Yes, it's the oldest ocean."
+    "Yes, it is the oldest ocean.",
+    "There are nothing similar between friuts on the table and dog barking."
 ]
 
 def main():
@@ -68,7 +84,7 @@ def main():
 
             print("\n=== [ RESPONSE ] ===\n", response)
             print("\n=== [ PPL ] ===", ppl[0], "===")
-            # print("\n === HISTORY ===\n", history)
+            print("\n === HISTORY ===\n", history)
 
             num = num + 1
 
