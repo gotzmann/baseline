@@ -25,15 +25,15 @@ from .utils import get_query_from_input, get_text_emb
 
 # -- PandaGPT
 
-from transformers import AutoModel, AutoTokenizer
-from copy import deepcopy
-import os
-import ipdb
+### from transformers import AutoModel, AutoTokenizer
+### from copy import deepcopy
+### import os
+### import ipdb
 import gradio as gr
-import mdtex2html
+### import mdtex2html
 from model.openllama import OpenLLAMAPEFTModel
-import torch
-import json
+### import torch
+### import json
 
 # -- Baseline
 
